@@ -1,30 +1,30 @@
 <script setup>
-import { useRoute } from "vue-router";
-import router from "../../router/index.js";
-import { ref, onMounted } from "vue";
-import changeTheme from "../component/changeTheme.vue";
-const user = ref("don't login");
-const logs = ref([]);
-const fileType = ref("");
-const base64ImageUrl = ref("");
-let create;
-let update;
-const timeZone = ref("");
-const reFormatCreate = ref();
-const reFormatUpdate = ref();
-const noFile = ref(false);
-const file = ref("");
+import { useRoute } from "vue-router"
+import router from "../../router/index.js"
+import { ref, onMounted } from "vue"
+import changeTheme from "../component/changeTheme.vue"
+const user = ref("don't login")
+const logs = ref([])
+const fileType = ref("")
+const base64ImageUrl = ref("")
+let create
+let update
+const timeZone = ref("")
+const reFormatCreate = ref()
+const reFormatUpdate = ref()
+const noFile = ref(false)
+const file = ref("")
 onMounted(async () => {
-  let response;
-  const route = useRoute();
+  let response
+  const route = useRoute()
   if (
     localStorage.getItem("token") !== null &&
     localStorage.getItem("token").length > 0
   ) {
-    const decodedToken = atob(localStorage.getItem("token").split(".")[1]);
-    const Jsondecode = JSON.parse(decodedToken);
-    user.value = Jsondecode.name;
-    console.log(Jsondecode.name);
+    const decodedToken = atob(localStorage.getItem("token").split(".")[1])
+    const Jsondecode = JSON.parse(decodedToken)
+    user.value = Jsondecode.name
+    console.log(Jsondecode.name)
     response = await fetch(
       import.meta.env.VITE_BASE_URL + `/log/${route.params.logId}`,
       {
@@ -32,89 +32,92 @@ onMounted(async () => {
           Authorization: "Bearer " + localStorage.getItem("token"),
         },
       }
-    );
+    )
     if (response.status === 403 || response.status === 401) {
-      window.alert("You don't have permission.");
-      router.replace("/log");
+      window.alert("You don't have permission.")
+      router.replace("/log")
+    }else if(response.status === 404){
+      window.alert("Log ID not found")
+      router.replace("/log")
     }
   } else {
-    window.alert("you must login first");
-    router.replace("/login");
+    window.alert("you must login first")
+    router.replace("/log")
   }
-  const data = await response.json();
-  logs.value = data;
-  file.value = logs.value.data;
+  const data = await response.json()
+  logs.value = data
+  file.value = logs.value.data
   try {
     if (logs.value.data === null || logs.value.data === "") {
-      noFile.value = true;
+      noFile.value = true
     } else {
-      const binaryString = atob(logs.value.data);
-      const byteArray = new Uint8Array(binaryString.length);
+      const binaryString = atob(logs.value.data)
+      const byteArray = new Uint8Array(binaryString.length)
       for (let i = 0; i < binaryString.length; i++) {
-        byteArray[i] = binaryString.charCodeAt(i);
+        byteArray[i] = binaryString.charCodeAt(i)
       }
       const magicNumber = byteArray
         .slice(0, 4)
-        .reduce((acc, byte) => acc + byte.toString(16).padStart(2, "0"), "");
+        .reduce((acc, byte) => acc + byte.toString(16).padStart(2, "0"), "")
       if (magicNumber.startsWith("ffd8")) {
-        fileType.value = "image/jpeg";
+        fileType.value = "image/jpeg"
       } else if (magicNumber.startsWith("89504e47")) {
-        fileType.value = "image/png";
+        fileType.value = "image/png"
       } else if (magicNumber.startsWith("25504446")) {
-        fileType.value = "application/pdf";
+        fileType.value = "application/pdf"
       } else {
-        fileType.value = "unknown";
+        fileType.value = "unknown"
       }
       if (fileType.value === "image/png" || fileType.value === "image/jpeg") {
-        base64ImageUrl.value = `data:${fileType.value};base64,${logs.value.data}`;
+        base64ImageUrl.value = `data:${fileType.value};base64,${logs.value.data}`
       }
     }
   } catch (error) {
-    console.error("Error loading image:", error);
+    console.error("Error loading image:", error)
   }
-  create = new Date(logs.value.recordedOn);
-  update = new Date(logs.value.updatedOn);
-  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  timeZone.value = tz;
+  create = new Date(logs.value.recordedOn)
+  update = new Date(logs.value.updatedOn)
+  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
+  timeZone.value = tz
   reFormatCreate.value = create.toLocaleString("en-GB", {
     timeZone: `${tz}`,
-  });
+  })
   reFormatUpdate.value = update.toLocaleString("en-GB", {
     timeZone: `${tz}`,
-  });
-});
+  })
+})
 
 function downloadFile(base64Data, fileType, fileName) {
-  const byteCharacters = atob(base64Data);
-  const byteArrays = [];
+  const byteCharacters = atob(base64Data)
+  const byteArrays = []
 
   for (let offset = 0; offset < byteCharacters.length; offset += 512) {
-    const slice = byteCharacters.slice(offset, offset + 512);
-    const byteNumbers = new Array(slice.length);
+    const slice = byteCharacters.slice(offset, offset + 512)
+    const byteNumbers = new Array(slice.length)
     for (let i = 0; i < slice.length; i++) {
-      byteNumbers[i] = slice.charCodeAt(i);
+      byteNumbers[i] = slice.charCodeAt(i)
     }
-    const byteArray = new Uint8Array(byteNumbers);
-    byteArrays.push(byteArray);
+    const byteArray = new Uint8Array(byteNumbers)
+    byteArrays.push(byteArray)
   }
-  const blob = new Blob(byteArrays, { type: fileType });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = fileName;
-  link.click();
-  URL.revokeObjectURL(url);
+  const blob = new Blob(byteArrays, { type: fileType })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement("a")
+  link.href = url
+  link.download = fileName
+  link.click()
+  URL.revokeObjectURL(url)
 }
 
 const handleDownload = () => {
   if (!file.value || !fileType.value) {
-    console.error("No file available for download");
-    return;
+    console.error("No file available for download")
+    return
   }
-  const type = fileType.value.split("/")[1];
-  const fileName = `evidence.${type}`;
-  downloadFile(file.value, fileType.value, fileName);
-};
+  const type = fileType.value.split("/")[1]
+  const fileName = `evidence.${type}`
+  downloadFile(file.value, fileType.value, fileName)
+}
 </script>
 <template>
   <changeTheme></changeTheme>
@@ -134,7 +137,7 @@ const handleDownload = () => {
           <p
             class="p-1 text-xl text-center text-yellow-500 font-bold underline"
           >
-            Evidence
+            Evidence (support file : pdf,jpg,png)
           </p>
           <p v-if="fileType">File type detected: {{ fileType }}</p>
           <p v-show="noFile" class="text-red-700">
@@ -151,8 +154,7 @@ const handleDownload = () => {
               class="w-full h-full object-cover"
             />
             <p class="text-xl text-red-700-500 font-bold underline" v-else>
-              Unsupported file type.
-            </p>
+              this file is not image            </p>
           </div>
         </div>
         <div class="flex flex-col w-1/2">

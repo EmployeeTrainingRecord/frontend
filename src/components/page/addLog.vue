@@ -10,7 +10,7 @@ const noFile = ref(false)
 const employeeId = ref("")
 const name = ref("")
 const course = ref("")
-const totalHours = ref()
+const totalHours = ref(0)
 const trainingCost = ref(0)
 const file = ref()
 const role = ref("")
@@ -30,7 +30,7 @@ onMounted(async () => {
     console.log(Jsondecode.name)
   } else {
     window.alert("you must login first")
-    router.replace("/login")
+    router.replace("/log")
   }
   if (role.value === "manager" || role.value === "admin") {
     const fetchUser = await fetch(import.meta.env.VITE_BASE_URL + `/users`, {
@@ -43,57 +43,57 @@ onMounted(async () => {
     console.log(userData)
   }
       noFile.value = true
-});
+})
 
 function base64ToBlob(base64, fileType) {
-  const byteCharacters = atob(base64);
-  const byteArrays = [];
+  const byteCharacters = atob(base64)
+  const byteArrays = []
   for (let offset = 0; offset < byteCharacters.length; offset += 512) {
-    const slice = byteCharacters.slice(offset, offset + 512);
-    const byteNumbers = new Array(slice.length);
+    const slice = byteCharacters.slice(offset, offset + 512)
+    const byteNumbers = new Array(slice.length)
     for (let i = 0; i < slice.length; i++) {
-      byteNumbers[i] = slice.charCodeAt(i);
+      byteNumbers[i] = slice.charCodeAt(i)
     }
-    const byteArray = new Uint8Array(byteNumbers);
-    byteArrays.push(byteArray);
+    const byteArray = new Uint8Array(byteNumbers)
+    byteArrays.push(byteArray)
   }
-  return new Blob(byteArrays, { type: fileType });
+  return new Blob(byteArrays, { type: fileType })
 }
 
 watch(employeeId, (newOid) => {
-  console.log(`Selected Employee ID: ${newOid}`);
-  findNameById(newOid);
-});
+  console.log(`Selected Employee ID: ${newOid}`)
+  findNameById(newOid)
+})
 
 function findNameById(oid) {
-  const userFound = users.value.find((user) => user.oid === oid);
+  const userFound = users.value.find((user) => user.oid === oid)
   if (userFound) {
-    name.value = userFound.name;
+    name.value = userFound.name
   } else {
     name.value = ""
   }
 }
 const editLog = async (id) => {
-  console.log("file.value : " + file.value);
+  console.log("file.value : " + file.value)
   const trainingLogDTO = {
     employeeId: `${employeeId.value}`,
     course: `${course.value}`,
     totalHours: `${totalHours.value}`,
     trainingCost: trainingCost.value,
-  };
-  const formData = new FormData();
-  formData.append("trainingLogDTO", JSON.stringify(trainingLogDTO));
+  }
+  const formData = new FormData()
+  formData.append("trainingLogDTO", JSON.stringify(trainingLogDTO))
   if (!file.value || file.value === "") {
-    const fileInput = document.querySelector("#file-input");
+    const fileInput = document.querySelector("#file-input")
     if (fileInput && fileInput.files.length > 0) {
-      formData.append("file", fileInput.files[0]);
+      formData.append("file", fileInput.files[0])
     } else {
-      console.log("No file uploaded.");
+      console.log("No file uploaded.")
     }
   } else {
-    const fileBlob = base64ToBlob(file.value, fileType.value);
-    const type = fileType.value.split("/")[1];
-    formData.append("file", fileBlob, `evidence.${type}`);
+    const fileBlob = base64ToBlob(file.value, fileType.value)
+    const type = fileType.value.split("/")[1]
+    formData.append("file", fileBlob, `evidence.${type}`)
   }
   try {
     const response = await fetch(`${import.meta.env.VITE_BASE_URL}/log`, {
@@ -102,15 +102,15 @@ const editLog = async (id) => {
         Authorization: "Bearer " + localStorage.getItem("token"),
       },
       body: formData,
-    });
+    })
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      throw new Error(`HTTP error! status: ${response.status}`)
     }
-    const result = await response.json();
-    console.log("Log added successfully:", result);
-    router.replace("/log");
+    const result = await response.json()
+    console.log("Log added successfully:", result)
+    router.replace("/log")
   } catch (error) {
-    console.error("Error updating log:", error.message);
+    console.error("Error updating log:", error.message)
   }
 };
 </script>
@@ -132,7 +132,7 @@ const editLog = async (id) => {
           <p
             class="p-1 text-xl text-center text-yellow-500 font-bold underline"
           >
-            Evidence
+            Evidence (Max file size = 50MB)
           </p>
           <div class="flex flex-row justify-between items-center">
             <p v-if="fileType" class="">File type detected: {{ fileType }}</p>
@@ -176,9 +176,7 @@ const editLog = async (id) => {
                 file && fileType !== 'image/png' && fileType !== 'image/jpeg'
               "
               class="text-xl text-red-500 font-bold underline"
-            >
-              Unsupported file type.
-            </p>
+            >this file is not image</p>
           </div>
         </div>
         <div class="flex flex-col w-1/2">
@@ -233,7 +231,7 @@ const editLog = async (id) => {
             >
               <input 
               type="number"
-      min="0"
+      min="1"
 
                 class="pl-2 text-sm w-full rounded-xl border-none outline-none"
                 v-model.number="totalHours"
@@ -247,7 +245,7 @@ const editLog = async (id) => {
             >
               <input
               type="number"
-      min="0"
+      min="1"
                 class="pl-2 text-sm w-full rounded-xl border-none outline-none"
                 v-model.number="trainingCost"
               />

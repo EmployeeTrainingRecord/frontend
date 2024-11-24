@@ -1,41 +1,42 @@
 <script setup>
-import { useRoute } from "vue-router";
-import router from "../../router/index.js";
-import { ref, onMounted, watch } from "vue";
-import changeTheme from "../component/changeTheme.vue";
-const username = ref("don't login");
-const logs = ref([]);
-const fileType = ref("");
-const base64ImageUrl = ref("");
-let create;
-let update;
-const timeZone = ref("");
-const reFormatCreate = ref();
-const reFormatUpdate = ref();
-const noFile = ref(false);
-const employeeId = ref("");
-const name = ref("");
-const course = ref("");
-const totalHours = ref();
-const trainingCost = ref(0);
-const file = ref();
-const role = ref("");
-const users = ref();
+import { useRoute } from "vue-router"
+import router from "../../router/index.js"
+import { ref, onMounted, watch } from "vue"
+import changeTheme from "../component/changeTheme.vue"
+const username = ref("don't login")
+const logs = ref([])
+const fileType = ref("")
+const base64ImageUrl = ref("")
+let create
+let update
+const timeZone = ref("")
+const reFormatCreate = ref()
+const reFormatUpdate = ref()
+const noFile = ref(false)
+const employeeId = ref("")
+const name = ref("")
+const course = ref("")
+const totalHours = ref(0)
+const trainingCost = ref(0)
+const file = ref()
+const role = ref("")
+const users = ref()
+const courses = ref([])
 watch([file], () => {
-  noFile.value = !file.value || file.value === "";
-});
+  noFile.value = !file.value || file.value === ""
+})
 onMounted(async () => {
-  let response;
-  const route = useRoute();
+  let response
+  const route = useRoute()
   if (
     localStorage.getItem("token") !== null &&
     localStorage.getItem("token").length > 0
   ) {
-    const decodedToken = atob(localStorage.getItem("token").split(".")[1]);
-    const Jsondecode = JSON.parse(decodedToken);
-    username.value = Jsondecode.name;
-    role.value = Jsondecode.role;
-    console.log(Jsondecode.name);
+    const decodedToken = atob(localStorage.getItem("token").split(".")[1])
+    const Jsondecode = JSON.parse(decodedToken)
+    username.value = Jsondecode.name
+    role.value = Jsondecode.role
+    console.log(Jsondecode.name)
     response = await fetch(
       import.meta.env.VITE_BASE_URL + `/log/${route.params.logId}`,
       {
@@ -43,118 +44,138 @@ onMounted(async () => {
           Authorization: "Bearer " + localStorage.getItem("token"),
         },
       }
-    );
+    )
     if (response.status === 403 || response.status === 401) {
-      window.alert("You don't have permission.");
-      router.replace("/log");
+      window.alert("You don't have permission.")
+      router.replace("/log")
+    } else if (response.status === 404) {
+      window.alert("Log ID not found")
+      router.replace("/log")
     }
   } else {
-    window.alert("you must login first");
-    router.replace("/login");
+    window.alert("you must login first")
+    // router.replace("/login")
   }
-  const data = await response.json();
+  const data = await response.json()
   if (role.value === "manager" || role.value === "admin") {
     const fetchUser = await fetch(import.meta.env.VITE_BASE_URL + `/users`, {
       headers: {
         Authorization: "Bearer " + localStorage.getItem("token"),
       },
-    });
-    const userData = await fetchUser.json();
-    users.value = userData;
+    })
+    const userData = await fetchUser.json()
+    users.value = userData
   }
-  logs.value = data;
-  employeeId.value = logs.value.employeeId;
-  name.value = logs.value.name;
-  course.value = logs.value.course;
-  totalHours.value = logs.value.totalHours;
-  trainingCost.value = logs.value.trainingCost;
-  file.value = logs.value.data;
+  logs.value = data
+  employeeId.value = logs.value.employeeId
+  name.value = logs.value.name
+  course.value = logs.value.course
+  totalHours.value = logs.value.totalHours
+  trainingCost.value = logs.value.trainingCost
+  file.value = logs.value.data
   try {
     if (file.value === null || file.value === "") {
-      noFile.value = true;
+      noFile.value = true
     } else {
-      const binaryString = atob(file.value);
-      const byteArray = new Uint8Array(binaryString.length);
+      const binaryString = atob(file.value)
+      const byteArray = new Uint8Array(binaryString.length)
       for (let i = 0; i < binaryString.length; i++) {
-        byteArray[i] = binaryString.charCodeAt(i);
+        byteArray[i] = binaryString.charCodeAt(i)
       }
       const magicNumber = byteArray
         .slice(0, 4)
-        .reduce((acc, byte) => acc + byte.toString(16).padStart(2, "0"), "");
+        .reduce((acc, byte) => acc + byte.toString(16).padStart(2, "0"), "")
       if (magicNumber.startsWith("ffd8")) {
-        fileType.value = "image/jpeg";
+        fileType.value = "image/jpeg"
       } else if (magicNumber.startsWith("89504e47")) {
-        fileType.value = "image/png";
+        fileType.value = "image/png"
       } else if (magicNumber.startsWith("25504446")) {
-        fileType.value = "application/pdf";
+        fileType.value = "application/pdf"
       } else {
-        fileType.value = "unknown";
+        fileType.value = "unknown"
       }
       if (fileType.value === "image/png" || fileType.value === "image/jpeg") {
-        base64ImageUrl.value = `data:${fileType.value};base64,${file.value}`;
+        base64ImageUrl.value = `data:${fileType.value};base64,${file.value}`
       }
     }
   } catch (error) {
-    console.error("Error loading image:", error);
+    console.error("Error loading image:", error)
   }
-  create = new Date(logs.value.recordedOn);
-  update = new Date(logs.value.updatedOn);
-  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  timeZone.value = tz;
+  create = new Date(logs.value.recordedOn)
+  update = new Date(logs.value.updatedOn)
+  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
+  timeZone.value = tz
   reFormatCreate.value = create.toLocaleString("en-GB", {
     timeZone: `${tz}`,
-  });
+  })
   reFormatUpdate.value = update.toLocaleString("en-GB", {
     timeZone: `${tz}`,
-  });
+  })
   if (role !== "employee") {
-  watch(employeeId, (newOid) => {
-    findNameById(newOid);
-  });
-}
-});
-function base64ToBlob(base64, fileType) {
-  const byteCharacters = atob(base64);
-  const byteArrays = [];
-  for (let offset = 0; offset < byteCharacters.length; offset += 512) {
-    const slice = byteCharacters.slice(offset, offset + 512);
-    const byteNumbers = new Array(slice.length);
-    for (let i = 0; i < slice.length; i++) {
-      byteNumbers[i] = slice.charCodeAt(i);
-    }
-    const byteArray = new Uint8Array(byteNumbers);
-    byteArrays.push(byteArray);
+    watch(employeeId, (newOid) => {
+      findNameById(newOid)
+    })
   }
-  return new Blob(byteArrays, { type: fileType });
+  const fetchCourse = await fetch(import.meta.env.VITE_BASE_URL + `/course`)
+  const CourseData = await fetchCourse.json()
+  courses.value = CourseData
+  watch(course, (name) => {
+    findCourseByName(name)
+    })
+})
+function base64ToBlob(base64, fileType) {
+  const byteCharacters = atob(base64)
+  const byteArrays = []
+  for (let offset = 0; offset < byteCharacters.length; offset += 512) {
+    const slice = byteCharacters.slice(offset, offset + 512)
+    const byteNumbers = new Array(slice.length)
+    for (let i = 0; i < slice.length; i++) {
+      byteNumbers[i] = slice.charCodeAt(i)
+    }
+    const byteArray = new Uint8Array(byteNumbers)
+    byteArrays.push(byteArray)
+  }
+  return new Blob(byteArrays, { type: fileType })
 }
 function findNameById(oid) {
-  const userFound = users.value.find((user) => user.oid === oid);
+  const userFound = users.value.find((user) => user.oid === oid)
   if (userFound) {
-    name.value = userFound.name;
+    name.value = userFound.name
   } else {
-    name.value = "";
+    name.value = ""
   }
 }
+function findCourseByName(name) {
+  const courseFound = courses.value.find((course) => course.course === name)
+  if (courseFound) {
+    console.log(courseFound)
+    totalHours.value = courseFound.totalHours
+    trainingCost.value =courseFound.cost
+  } else {
+    name.value = ""
+  }
+}
+
 const editLog = async (id) => {
   const trainingLogDTO = {
     employeeId: `${employeeId.value}`,
     course: `${course.value}`,
     totalHours: `${totalHours.value}`,
     trainingCost: trainingCost.value,
-  };
-  const formData = new FormData();
-  formData.append("trainingLogDTO", JSON.stringify(trainingLogDTO));
+  }
+  const formData = new FormData()
+  formData.append("trainingLogDTO", JSON.stringify(trainingLogDTO))
   if (!file.value || file.value === "") {
-    const fileInput = document.querySelector("#file-input");
+    const fileInput = document.querySelector("#file-input")
     if (fileInput && fileInput.files.length > 0) {
-      formData.append("file", fileInput.files[0]);
+      formData.append("file", fileInput.files[0])
     } else {
-      console.log("No file uploaded.");
+      console.log("No file uploaded.")
     }
   } else {
-    const fileBlob = base64ToBlob(file.value, fileType.value);
-    const type = fileType.value.split("/")[1];
-    formData.append("file", fileBlob, `evidence.${type}`);
+    const fileBlob = base64ToBlob(file.value, fileType.value)
+    const type = fileType.value.split("/")[1]
+    formData.append("file", fileBlob, `evidence.${type}`)
   }
   try {
     const response = await fetch(`${import.meta.env.VITE_BASE_URL}/log/${id}`, {
@@ -163,14 +184,14 @@ const editLog = async (id) => {
         Authorization: "Bearer " + localStorage.getItem("token"),
       },
       body: formData,
-    });
+    })
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      throw new Error(`HTTP error! status: ${response.status}`)
     }
-    const result = await response.json();
-    router.replace("/log");
+    const result = await response.json()
+    router.replace("/log")
   } catch (error) {
-    console.error("Error updating log:", error.message);
+    console.error("Error updating log:", error.message)
   }
 };
 </script>
@@ -193,6 +214,11 @@ const editLog = async (id) => {
             class="p-1 text-xl text-center text-yellow-500 font-bold underline"
           >
             Evidence
+          </p>
+          <p
+            class="p-1 text-xl text-center text-yellow-500 font-bold underline"
+          >
+          (Max file size = 50MB ,support file : pdf,jpg,png)
           </p>
           <div class="flex flex-row justify-between items-center">
             <p v-if="fileType" class="">File type detected: {{ fileType }}</p>
@@ -224,6 +250,7 @@ const editLog = async (id) => {
               alt="Decoded Image"
               class="w-full h-full object-cover"
             />
+            <p v-else-if="fileType.length > 0"></p>
             <input
               v-else
               type="file"
@@ -237,8 +264,7 @@ const editLog = async (id) => {
               "
               class="text-xl text-red-500 font-bold underline"
             >
-              Unsupported file type.
-            </p>
+            this file is not image            </p>
           </div>
         </div>
         <div class="flex flex-col w-1/2">
@@ -280,12 +306,14 @@ const editLog = async (id) => {
               Course
             </h1>
             <div
-              class="flex w-[200px] h-[30px] border-black border-solid border-[1px] rounded-xl"
+              class="flex w-[150px] border-black border-solid border-[1px] rounded-xl"
             >
-              <input
-                class="pl-2 text-sm w-full rounded-xl border-none outline-none"
+            <select
+                class="px-3 py-2 rounded-xl border border-black"
                 v-model="course"
-              />
+              >
+                <option v-for="c in courses">{{ c.course }}</option>
+              </select>
             </div>
             <h1 class="pb-2 text-xl text-yellow-500 font-bold underline">
               Total Hours
@@ -294,6 +322,8 @@ const editLog = async (id) => {
               class="flex w-[200px] h-[30px] border-black border-solid border-[1px] rounded-xl"
             >
               <input
+              type="number"
+              min="1"
                 class="pl-2 text-sm w-full rounded-xl border-none outline-none"
                 v-model="totalHours"
               />
@@ -305,6 +335,8 @@ const editLog = async (id) => {
               class="flex w-[200px] h-[30px] border-black border-solid border-[1px] rounded-xl"
             >
               <input
+              type="number"
+              min="1"
                 class="pl-2 text-sm w-full rounded-xl border-none outline-none"
                 v-model="trainingCost"
               />

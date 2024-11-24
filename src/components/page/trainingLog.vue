@@ -1,103 +1,111 @@
 <script setup>
-import router from "../../router/index.js";
-import { ref, onMounted, watch, computed } from "vue";
-const user = ref("don't login");
-const role = ref("");
-const logs = ref([]);
-const searchInput = ref("");
-const filterLogs = ref([]);
-const clickToHandbleLog = ref(false);
+import router from "../../router/index.js"
+import { ref, onMounted, watch, computed } from "vue"
+const user = ref("don't login")
+const role = ref("")
+const logs = ref([])
+const searchInput = ref("")
+const filterLogs = ref([])
+const clickToHandbleLog = ref(false)
 const clearInput = ref(true)
 onMounted(async () => {
-  let response;
+  let response
   if (
     localStorage.getItem("token") !== null &&
     localStorage.getItem("token").length > 0
   ) {
-    const decodedToken = atob(localStorage.getItem("token").split(".")[1]);
-    const Jsondecode = JSON.parse(decodedToken);
-    user.value = Jsondecode.name;
-    role.value = Jsondecode.role;
-    console.log(Jsondecode.name);
+    const decodedToken = atob(localStorage.getItem("token").split(".")[1])
+    const Jsondecode = JSON.parse(decodedToken)
+    user.value = Jsondecode.name
+    role.value = Jsondecode.role
     response = await fetch(import.meta.env.VITE_BASE_URL + `/log`, {
       headers: {
         Authorization: "Bearer " + localStorage.getItem("token"),
       },
-    });
+    })
   } else {
-    response = await fetch(import.meta.env.VITE_BASE_URL + `/log`);
+    response = await fetch(import.meta.env.VITE_BASE_URL + `/log`)
   }
-  const data = await response.json();
-  logs.value = data;
-});
+  const data = await response.json()
+  logs.value = data
+})
 function signOut() {
-  localStorage.removeItem("token");
-  window.location.reload();
+  localStorage.removeItem("token")
+  window.location.reload()
 }
 function toLogDetail(logId) {
   if (
     localStorage.getItem("token") !== null &&
     localStorage.getItem("token").length > 0
   ) {
-    router.replace({ name: "logDetail", params: { logId: logId } });
+    router.replace({ name: "logDetail", params: { logId: logId } })
   } else {
-    window.alert("you must login first");
-    router.replace("/login");
+    window.alert("you must login first")
+    router.replace("/login")
   }
 }
-const selectedTheme = ref("dark");
+const selectedTheme = ref("dark")
 const changeTheme = () => {
-  document.documentElement.setAttribute("data-theme", selectedTheme.value);
-};
+  document.documentElement.setAttribute("data-theme", selectedTheme.value)
+}
 const DeleteLog = async (id) => {
   if (
     localStorage.getItem("token") === null ||
     localStorage.getItem("token").length === 0
   ) {
-    window.alert("you must login first");
-    router.replace("/login");
+    window.alert("you must login first")
+    // router.replace("/login")
   } else {
     await fetch(`${import.meta.env.VITE_BASE_URL}/log/${id}`, {
       method: "DELETE",
       headers: { Authorization: "Bearer " + localStorage.getItem("token") },
-    });
-    location.reload();
+    })
+    location.reload()
   }
-};
+}
 watch(searchInput, (input) => {
   if (!clickToHandbleLog.value) {
-    search(input);
+    search(input)
   } 
-    clickToHandbleLog.value = false;
-});
+    clickToHandbleLog.value = false
+})
 const search = (input) => {
   filterLogs.value = logs.value.filter(
     (log) =>
       log.name.toLowerCase().includes(input.toLowerCase()) ||
       log.course.toLowerCase().includes(input.toLowerCase())
-  );
-};
+  )
+}
 
 function handbleLogs() {
   if (searchInput.value !== "") {
-    searchInput.value = "";
-    clickToHandbleLog.value = true;
+    searchInput.value = ""
+    clickToHandbleLog.value = true
   } else {
-    clickToHandbleLog.value = !clickToHandbleLog.value;
+    clickToHandbleLog.value = !clickToHandbleLog.value
   }
   filterLogs.value = logs.value.filter((log) =>
     log.name.toLowerCase().includes(user.value.toLowerCase())
-  );
+  )
 }
 
 const displayLogs = computed(() => {
   if (searchInput.value !== "" || clickToHandbleLog.value) {
     clearInput.value = false
-    return filterLogs.value;
+    return filterLogs.value
   }
   clearInput.value = true
-  return logs.value;
-});
+  return logs.value
+})
+function editLogs(id){
+  if(localStorage.getItem("token") === null ||localStorage.getItem("token").length === 0){
+    window.alert("you must login first")
+    return
+  }
+  router.replace({name: 'editLog',params: { logId: id },
+})
+
+}
 </script>
 <template>
   <div
@@ -136,17 +144,24 @@ const displayLogs = computed(() => {
       </button>
     </div>
   </div>
-  <div class="flex flex-row gap-x-3 justify-end bg-gray-800 items-center pl-4 pr-4 pb-4 text-white shadow-md "
+  <div class="flex flex-row gap-x-3 w-full justify-end bg-gray-800 items-center pl-4 pr-4 pb-4 text-white shadow-md "
   >
+      <button
+        class="justify-end px-3 py-2 bg-orange-500 rounded-xl"
+        @click="router.replace('/course')"
+      >
+      manage course
+      </button>
       <input
         type="text"
         v-model="searchInput"
-        class=" w-[300px] p-2 rounded-lg border border-gray-300 outline-none focus:border-blue-500"
+        class="justify-end w-[300px] p-2 rounded-lg border border-gray-300 outline-none focus:border-blue-500"
         placeholder="Search with name or course..."
       />
+      <p v-if="role === ''"></p>
       <button
-        class="px-3 py-2 bg-pink-500 rounded-xl"
-        v-if="role !== '' && clearInput === false"
+        class="justify-end px-3 py-2 bg-pink-500 rounded-xl"
+        v-else-if="role !== '' && clearInput === false"
         @click="handbleLogs"
       >
       clear filter
@@ -244,12 +259,7 @@ const displayLogs = computed(() => {
                 delete
               </button>
               <button
-                @click="
-                  router.replace({
-                    name: 'editLog',
-                    params: { logId: log.logId },
-                  })
-                "
+                @click="editLogs(log.logId)"
                 class="bg-blue-500 hover:bg-blue-700 px-3 py-2 rounded-xl text-white"
               >
                 edit

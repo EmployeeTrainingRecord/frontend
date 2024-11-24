@@ -1,12 +1,12 @@
 <script setup>
-import { useRoute } from "vue-router";
-import router from "../../router/index.js";
-import { ref, onMounted } from "vue";
-import changeTheme from "../component/changeTheme.vue";
-const route = useRoute();
-const username = ref("");
-const password = ref("");
-const errorResponse = ref("");
+import { useRoute } from "vue-router"
+import router from "../../router/index.js"
+import { ref, onMounted } from "vue"
+import changeTheme from "../component/changeTheme.vue"
+const route = useRoute()
+const username = ref("")
+const password = ref("")
+const errorResponse = ref("")
 const is401 = ref("")
 const login = async () => {
   if (username.value !== null && username.value.length !== 0) {
@@ -20,32 +20,31 @@ const login = async () => {
           userName: `${username.value}`,
           password: `${password.value}`,
         }),
-      };
+      }
       fetch(import.meta.env.VITE_BASE_URL + `/auth/login`, requestOptions)
         .then((response) => {
-          console.log("fetching");
+          console.log("fetching")
           if (response.status === 401 || response.status === 400) {
-            is401.value = true;
-            console.log("Unauthorized: Invalid credentials");
+            is401.value = true
+            console.log("Unauthorized: Invalid credentials")
           } else {
-            return response.json();
+            return response.json()
           }
         })
         .then(async (Token) => {
           if (Token) {
             localStorage.setItem("token",Token.token)
-            console.log(localStorage.getItem("token"))
             router.replace(`/log`)
           }
         })
     }
     else{
-      errorResponse.value = "password can't empty";
+      errorResponse.value = "password can't empty"
     }
   } else {
-    errorResponse.value = "username can't empty";
+    errorResponse.value = "username can't empty"
   }
-};
+}
 </script>
 <template>
     <changeTheme></changeTheme>

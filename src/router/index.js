@@ -4,7 +4,7 @@ import trainingLog from "../components/page/trainingLog.vue"
 import logDetail from "../components/page/logDetail.vue"
 import editLog from "../components/page/editLog.vue"
 import addLog from "../components/page/addLog.vue"
-
+import course from "../components/page/course.vue"
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -42,7 +42,11 @@ const router = createRouter({
       name: "addLog",
       component: addLog
     },
-
+    {
+      path: "/course",
+      name: "course",
+      component: course
+    },
   ]
 })
 
