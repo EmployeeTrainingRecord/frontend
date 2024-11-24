@@ -151,7 +151,7 @@ const handleDownload = () => {
               v-if="fileType === 'image/png' || fileType === 'image/jpeg'"
               :src="base64ImageUrl"
               alt="Decoded Image"
-              class="w-full h-full object-cover"
+              class="w-full h-full object-cover object-top"
             />
             <p class="text-xl text-red-700-500 font-bold underline" v-else>
               this file is not image            </p>

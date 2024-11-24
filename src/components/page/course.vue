@@ -7,8 +7,7 @@ const courses = ref([])
 const courseId = ref("")
 const courseName = ref("")
 const courseCost = ref(0)
-const courseTotalHours = ref(0)
-const whichFunction = ref("")
+const courseTotalHours = ref(1)
 const isEmpty = ref(false)
 onMounted(async () => {
   let response
@@ -46,21 +45,13 @@ const showModal = async (id,name,cost,hours, func) => {
   courseId.value = id
   if (func === "delete") {
     deleteModal.showModal()
-    courseName.value = name
-    courseId.value = id
-    whichFunction.value = func
-  } else if (func === "edit") {
-    courseName.value = name
-    courseId.value = id
+ } else if (func === "edit") {
     courseCost.value = cost
     courseTotalHours.value = hours
-    whichFunction.value = func
     editModal.showModal()
   } else if (func === "add") {
-    whichFunction.value = func
-    courseName.value = name
     courseCost.value = 0
-    courseTotalHours.value = 0
+    courseTotalHours.value = 1
     addModal.showModal()
   }
 }
@@ -73,7 +64,8 @@ const deleteCourse = async (id) => {
 }
 const editCourse = async () =>{
   if(courseName.value === '' ||     courseCost.value === '' ||     courseTotalHours.value === ''){
-    isEmpty.value = true
+    window.alert("some input is empty")
+    return
   }
   console.log(courseId.value)
   const requestOptions = {
@@ -98,7 +90,7 @@ const editCourse = async () =>{
 }
 const addCourse = async () =>{
   if(courseName.value === '' ||     courseCost.value === '' ||     courseTotalHours.value === ''){
-    isEmpty.value = true
+    window.alert("some input is empty")
     return
   }
   console.log(courseId.value)
@@ -128,7 +120,7 @@ const addCourse = async () =>{
   <div
     class="flex flex-row justify-between items-center p-4 bg-gray-800 text-white shadow-md rounded-t-md"
   >
-    <div class="mb-4">
+    <div class="mb-4 flex gap-x-3">
       <select
         class="px-3 py-2 rounded-xl border border-black text-primary"
         v-model="selectedTheme"
@@ -139,9 +131,9 @@ const addCourse = async () =>{
         <option value="cupcake">Cupcake</option>
         <option value="bumblebee">Bumblebee</option>
       </select>
-      <button @click="router.replace('/log')" class="bg-blue-500 hover:bg-blue-700 text-white">back</button>
+      <button @click="router.replace('/log')" class="bg-blue-500 hover:bg-blue-700 text-white btn">back</button>
     </div>
-    <h1 class="text-3xl">Employee Training Record</h1>
+    <h1 class="text-3xl">Manage Course</h1>
     <div class="flex flex-row gap-x-4 items-center">
       <h1 v-if="user !== `don't login`" class="text-lg font-semibold">
         Welcome, {{ user }}
@@ -278,6 +270,7 @@ const addCourse = async () =>{
       <h3 class="p-1 text-3xl text-center text-orange-500 font-bold underline">
         Edit Course
       </h3>
+      <p v-if="isEmpty" class=" text-red-600 ">some input is empty</p>
       <div class="flex flex-row p-2">
         <h3 class="p-1 w-[210px] text-xl text-center text-yellow-500 font-bold">
           Course name :
@@ -293,7 +286,7 @@ const addCourse = async () =>{
         </h3>
         <input
         type="number"
-        min="1"
+        min="0"
           class="pl-2 text-sm w-full rounded-xl border-none outline-none"
           v-model="courseCost"
         />
@@ -329,6 +322,7 @@ const addCourse = async () =>{
       <h3 class="p-1 text-3xl text-center text-orange-500 font-bold underline">
         Add Course
       </h3>
+      <p v-if="isEmpty" class=" text-red-600 ">some input is empty</p>
       <div class="flex flex-row p-2">
         <h3 class="p-1 w-[210px] text-xl text-center text-yellow-500 font-bold">
           Course name :
@@ -344,7 +338,7 @@ const addCourse = async () =>{
         </h3>
         <input
         type="number"
-        min="1"
+        min="0"
 
           class="pl-2 text-sm w-full rounded-xl border-none outline-none"
           v-model="courseCost"

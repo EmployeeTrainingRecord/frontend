@@ -297,7 +297,7 @@ const editLog = async (id) => {
               class="flex w-[200px] h-[30px] border-black border-solid border-[1px] rounded-xl"
             >
               <p
-                class="pl-2 text-sm w-full rounded-xl border-none outline-none"
+                class="p1 text-sm w-full rounded-xl border-none outline-none"
               >
                 {{ name }}
               </p>

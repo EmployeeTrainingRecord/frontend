@@ -8,6 +8,8 @@ const searchInput = ref("")
 const filterLogs = ref([])
 const clickToHandbleLog = ref(false)
 const clearInput = ref(true)
+const logName = ref("")
+const logID = ref("")
 onMounted(async () => {
   let response
   if (
@@ -28,6 +30,7 @@ onMounted(async () => {
   }
   const data = await response.json()
   logs.value = data
+  
 })
 function signOut() {
   localStorage.removeItem("token")
@@ -54,7 +57,6 @@ const DeleteLog = async (id) => {
     localStorage.getItem("token").length === 0
   ) {
     window.alert("you must login first")
-    // router.replace("/login")
   } else {
     await fetch(`${import.meta.env.VITE_BASE_URL}/log/${id}`, {
       method: "DELETE",
@@ -105,6 +107,18 @@ function editLogs(id){
   router.replace({name: 'editLog',params: { logId: id },
 })
 
+}
+const showModal = async (id,name) => {
+  if (
+    localStorage.getItem("token") === null ||
+    localStorage.getItem("token").length === 0
+  ) {
+    window.alert("you must login first")
+    router.replace("/log")
+  }
+  logName.value = name
+  logID.value = id
+  deleteModal.showModal()
 }
 </script>
 <template>
@@ -253,7 +267,7 @@ function editLogs(id){
           <td class="px-4 py-2 border border-gray-700 text-center">
             <div class="flex flex-row gap-x-4 justify-center" @click.stop>
               <button
-                @click="DeleteLog(log.logId)"
+                @click="showModal(log.logId)"
                 class="bg-red-500 hover:bg-red-700 px-3 py-2 rounded-xl text-white"
               >
                 delete
@@ -270,4 +284,25 @@ function editLogs(id){
       </tbody>
     </table>
   </div>
+  <dialog id="deleteModal" class="modal">
+    <div class="modal-box">
+      <h3 class="font-bold text-lg">Delete Course</h3>
+      <p class="py-4">
+        Do you want to delete the Log id "{{ logID }}"
+      </p>
+      <div class="modal-action flex justify-center gap-x-3">
+        <form method="dialog">
+          <button
+            class="bg-green-500 hover:bg-green-700 btn text-white"
+            @click="DeleteLog(logID)"
+          >
+            Confirm
+          </button>
+          <button class="bg-red-600 hover:bg-red-800 btn text-white">
+            Cancel
+          </button>
+        </form>
+      </div>
+    </div>
+  </dialog>
 </template>

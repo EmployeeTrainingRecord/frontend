@@ -15,6 +15,7 @@ const trainingCost = ref(0)
 const file = ref()
 const role = ref("")
 const users = ref()
+const courses = ref("")
 watch([file], () => {
   noFile.value = !file.value || file.value === ""
 })
@@ -43,6 +44,13 @@ onMounted(async () => {
     console.log(userData)
   }
       noFile.value = true
+      const fetchCourse = await fetch(import.meta.env.VITE_BASE_URL + `/course`)
+  const CourseData = await fetchCourse.json()
+  courses.value = CourseData
+  watch(course, (name) => {
+    findCourseByName(name)
+    })
+
 })
 
 function base64ToBlob(base64, fileType) {
@@ -112,7 +120,18 @@ const editLog = async (id) => {
   } catch (error) {
     console.error("Error updating log:", error.message)
   }
-};
+}
+function findCourseByName(name) {
+  const courseFound = courses.value.find((course) => course.course === name)
+  if (courseFound) {
+    console.log(courseFound)
+    totalHours.value = courseFound.totalHours
+    trainingCost.value =courseFound.cost
+  } else {
+    name.value = ""
+  }
+}
+
 </script>
 <template>
   <changeTheme></changeTheme>
@@ -209,19 +228,21 @@ const editLog = async (id) => {
               class="flex w-[200px] h-[30px] border-black border-solid border-[1px] rounded-xl"
             >
               <p
-                class="pl-2 text-sm w-full rounded-xl border-none outline-none"
+                class="p-1 text-sm w-full rounded-xl border-none outline-none"
               >{{  name  }}</p>
             </div>
             <h1 class="pb-2 text-xl text-yellow-500 font-bold underline">
               Course
             </h1>
             <div
-              class="flex w-[200px] h-[30px] border-black border-solid border-[1px] rounded-xl"
+              class="flex w-[150px] border-black border-solid border-[1px] rounded-xl"
             >
-              <input
-                class="pl-2 text-sm w-full rounded-xl border-none outline-none"
+            <select
+                class="px-3 w-full py-2 rounded-xl border border-black"
                 v-model="course"
-              />
+              >
+                <option v-for="c in courses">{{ c.course }}</option>
+              </select>
             </div>
             <h1 class="pb-2 text-xl text-yellow-500 font-bold underline">
               Total Hours
@@ -229,12 +250,11 @@ const editLog = async (id) => {
             <div
               class="flex w-[200px] h-[30px] border-black border-solid border-[1px] rounded-xl"
             >
-              <input 
+              <input
               type="number"
-      min="1"
-
+              min="1"
                 class="pl-2 text-sm w-full rounded-xl border-none outline-none"
-                v-model.number="totalHours"
+                v-model="totalHours"
               />
             </div>
             <h1 class="pb-2 text-xl text-yellow-500 font-bold underline">
@@ -245,9 +265,9 @@ const editLog = async (id) => {
             >
               <input
               type="number"
-      min="1"
+              min="1"
                 class="pl-2 text-sm w-full rounded-xl border-none outline-none"
-                v-model.number="trainingCost"
+                v-model="trainingCost"
               />
             </div>
           </div>
